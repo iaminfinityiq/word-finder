@@ -108,8 +108,12 @@ def find_mate(optimal_play: str, dictionary: Dict[str, List[str]], head: str, ma
         minimum: int = MAXIMUM_MATE_DEPTH+1
         optimal: str = ""
         for tail in dictionary[head]:
-            result: Tuple[int, str] = find_mate(tail if optimal_play else optimal_play, dictionary, tail, mate_in, False)
+            passed_in: str = optimal_play if optimal_play else tail
+            result: Tuple[int, str] = find_mate(passed_in, dictionary, tail, mate_in, False)
             if result[0] > 0:
+                if result[0] == mate_in:
+                    return (mate_in, passed_in)
+                
                 if result[0] < minimum:
                     optimal = tail
                     minimum = result[0]
