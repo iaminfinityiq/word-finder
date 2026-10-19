@@ -7,9 +7,14 @@ def nicer_formatting() -> None:
 
     with open("filtered.json", "w", encoding="utf-8") as file:
         file.write("{\n")
-        for line in txt.split("]"):
+        lines: List[str] = txt.split("]")
+        for i, line in enumerate(lines):
             if line[0] == ",":
-                file.write(f"   {line[1:]}],\n")
+                file.write(f"   {line[1:]}]")
+                if i < len(lines)-2:
+                    file.write(",")
+
+                file.write("\n")
 
         file.write("}")
 
