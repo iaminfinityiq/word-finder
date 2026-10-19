@@ -1,10 +1,12 @@
 from json import load
-from typing import List, Dict
+from typing import List, Dict, Tuple
 from os import name
 from subprocess import call
 from sys import exit
 from time import sleep
 from random import choice
+
+MAXIMUM_MATE_DEPTH: int = 4
 
 def cls():
     call("cls" if name == "nt" else "clear", shell=True)
@@ -14,12 +16,13 @@ def help(tokens: List[str]):
         print("The command only consists of the word 'help', not anything else")
         return
 
-    print("""Here are the list of commands we have:
+    print(f"""Here are the list of commands we have:
 [1] help: Get all of the commands
 [2] clean: Clears the terminal
 [3] find <head>: Find words that start with the head
 [4] find <word>: Checks if the word exists
-[5] quit: Quits the program""")
+[5] forced <head>: Checks if there is a forced win from the word given (maximum depth is mate in {MAXIMUM_MATE_DEPTH})
+[6] quit: Quits the program""")
 
 def clean(tokens: List[str]) -> None:
     if len(tokens) != 1:
@@ -91,6 +94,62 @@ Type a number (1 or 2) corresponding to the choice you want to make: """).strip(
 
     print(f"The word '{head} {tail}' exists in the dictionary")
 
+def find_mate(optimal_play: str, dictionary: Dict[str, List[str]], head: str, mate_in: int, turn: bool) -> Tuple[int, str]:
+    if mate_in > MAXIMUM_MATE_DEPTH:
+        return (0, "")
+
+    if head not in dictionary or dictionary[head] == []:
+        if turn:
+            return (0, "")
+
+        return (mate_in, optimal_play)
+
+    if turn:
+        minimum: int = MAXIMUM_MATE_DEPTH+1
+        optimal: str = ""
+        for tail in dictionary[head]:
+            result: Tuple[int, str] = find_mate(tail if optimal_play else optimal_play, dictionary, tail, mate_in, False)
+            if result[0] > 0:
+                if result[0] < minimum:
+                    optimal = tail
+                    minimum = result[0]
+
+        if minimum == MAXIMUM_MATE_DEPTH+1:
+            return (0, "")
+
+        return (minimum, optimal)
+
+    maximum: int = 0
+    for tail in dictionary[head]:
+        result_opp: int = find_mate(optimal_play, dictionary, tail, mate_in+1, True)[0]
+        if result_opp == 0:
+            return (0, "")
+        
+        maximum = max(maximum, result_opp)
+
+    if maximum:
+        return (maximum, optimal_play)
+
+    return (0, "")
+
+def forced(dictionary: Dict[str, List[str]], tokens: List[str]) -> None:
+    if len(tokens) == 1:
+        print("It is missing the starting word")
+        return
+    
+    if len(tokens) != 2:
+        print("The command only consists of the word 'forced' and one other sound, not anything else")
+        return
+    
+    mate_in: Tuple[int, str] = find_mate("", dictionary, tokens[1], 1, True)
+    if mate_in[0]:
+        print(f"The engine found a mate in {mate_in[0]}. The word you should play is:")
+        formed_word: str = f"{tokens[1]} {mate_in[1]}"
+        border: str = "-" * (len(formed_word) + 4)
+        print(f"{border}\n| {formed_word} |\n{border}")
+    else:
+        print("The engine cannot find a forced mate that is deeper than mate in 4")
+
 def quit(tokens: List[str]) -> None:
     if len(tokens) != 1:
         print("The command only consists of the word 'quit', not anything else")
@@ -110,6 +169,8 @@ def process_user_input(dictionary: Dict[str, List[str]], user_input: str) -> Non
             clean(tokens)
         case "find":
             find(dictionary, tokens)
+        case "forced":
+            forced(dictionary, tokens)
         case "quit":
             quit(tokens)
         case _:

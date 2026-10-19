@@ -39,7 +39,7 @@ def main() -> None:
             filtered_dictionary[head] += [tail]
         else:
             filtered_dictionary[head] = [tail]
-
+            
     with open("filtered.json", "w", encoding="utf-8") as output_file:
         dump(filtered_dictionary, output_file, ensure_ascii=False)
 
