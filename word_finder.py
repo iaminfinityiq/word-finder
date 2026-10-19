@@ -18,7 +18,8 @@ def help(tokens: List[str]):
 [1] help: Get all of the commands
 [2] clean: Clears the terminal
 [3] find <head>: Find words that start with the head
-[4] quit: Quits the program""")
+[4] find <word>: Checks if the word exists
+[5] quit: Quits the program""")
 
 def clean(tokens: List[str]) -> None:
     if len(tokens) != 1:
@@ -32,50 +33,63 @@ def find(dictionary: Dict[str, List[str]], tokens: List[str]) -> None:
         print("It is missing the starting word")
         return
 
-    if len(tokens) != 2:
-        print("The command only consists of the word 'find' and one other word, not anything else")
+    if len(tokens) not in (2, 3):
+        print("The command only consists of the word 'find' and one other sound/a full word, which contains two sounds, not anything else")
         return
 
-    head: str = tokens[1].lower()
-    if head not in dictionary:
-        print(f"Unfortunately, there are no words that start with {head}")
-        return
+    if len(tokens) == 2:
+        head: str = tokens[1].lower()
+        if head not in dictionary:
+            print(f"Unfortunately, there are no words that start with {head}")
+            return
 
-    possible_words: List[str] = dictionary[head]
-    if possible_words == []:
-        print(f"Unfortunately, there are no words that start with {head}")
-        return
+        possible_words: List[str] = dictionary[head]
+        if possible_words == []:
+            print(f"Unfortunately, there are no words that start with {head}")
+            return
 
-    if len(possible_words) == 1:
-        print(f"There is only 1 word that starts with {head}, which is:")
-        formed_word: str = f"{head} {possible_words[0]}"
-        border: str = "-" * (len(formed_word) + 4)
-        print(f"{border}\n| {formed_word} |\n{border}")
-        return
+        if len(possible_words) == 1:
+            print(f"There is only 1 word that starts with {head}, which is:")
+            formed_word: str = f"{head} {possible_words[0]}"
+            border: str = "-" * (len(formed_word) + 4)
+            print(f"{border}\n| {formed_word} |\n{border}")
+            return
 
-    while True:
-        cls()
-        user_choice: str = input(f"""There are {len(possible_words)} words that start with {head}. Pick one of the two choices shown:
+        while True:
+            cls()
+            user_choice: str = input(f"""There are {len(possible_words)} words that start with {head}. Pick one of the two choices shown:
 [1] Get a random word
 [2] List all of the possible words
 
 Type a number (1 or 2) corresponding to the choice you want to make: """).strip().lower()
-        match user_choice:
-            case "1":
-                print("The random generated word is:")
-                formed_word: str = f"{head} {choice(possible_words)}"
-                border: str = "-" * (len(formed_word) + 4)
-                print(f"{border}\n| {formed_word} |\n{border}")
-                return
-            case "2":
-                print(f"All of the words that start with {head} are:")
-                for i, word in enumerate(possible_words):
-                    print(f"[{i+1}] {head} {word}")
+            match user_choice:
+                case "1":
+                    print("The random generated word is:")
+                    formed_word: str = f"{head} {choice(possible_words)}"
+                    border: str = "-" * (len(formed_word) + 4)
+                    print(f"{border}\n| {formed_word} |\n{border}")
+                    return
+                case "2":
+                    print(f"All of the words that start with {head} are:")
+                    for i, word in enumerate(possible_words):
+                        print(f"[{i+1}] {head} {word}")
 
-                return
-            case _:
-                print("Invalid choice")
-                input("Press enter to continue")
+                    return
+                case _:
+                    print("Invalid choice")
+                    input("Press enter to continue")
+
+    head: str = tokens[1].lower()
+    tail: str = tokens[2].lower()
+    if head not in dictionary:
+        print(f"Unfortunately, the word '{head} {tail}' does not exist")
+        return
+
+    if tail not in dictionary[head]:
+        print(f"Unfortunately, the word '{head} {tail}' does not exist")
+        return
+
+    print(f"The word '{head} {tail}' exists in the dictionary")
 
 def quit(tokens: List[str]) -> None:
     if len(tokens) != 1:
